@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="http://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+        <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css" />
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="css/leaflet-search.css" />
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="http://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+        <script src="js/leaflet-heat.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/OSMBuildings-Leaflet.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="data/job70.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:9
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        var feature_group = new L.featureGroup([]);
+        var bounds_group = new L.featureGroup([]);
+        var raster_group = new L.LayerGroup([]);
+        var basemap0 = L.tileLayer('http://a.tile.stamen.com/terrain/{z}/{x}/{y}.png', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>,<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;Map data: &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+            maxZoom: 28
+        });
+        basemap0.addTo(map);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+            map.setMaxBounds(map.getBounds());
+        }
+        function geoJson2heat(geojson, weight) {
+          return geojson.features.map(function(feature) {
+            return [
+              feature.geometry.coordinates[1],
+              feature.geometry.coordinates[0],
+              feature.properties[weight]
+            ];
+          });
+        }
+        function pop_job70(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_job70(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row"></th>\
+                        <td>' + (feature.properties['bacia'] !== null ? Autolinker.link(String(feature.properties['bacia'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row"></th>\
+                        <td>' + (feature.properties['reg_hidrog'] !== null ? Autolinker.link(String(feature.properties['reg_hidrog'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row"></th>\
+                        <td>' + (feature.properties['Descricao'] !== null ? Autolinker.link(String(feature.properties['Descricao'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_job70(feature) {
+            switch(feature.properties['bacia']) {
+                case 'Comitê de Bacia dos Afluentes do Rio Maranhão':
+                    return {
+                pane: 'pane_job70',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0.5,
+                fillColor: 'rgba(131,202,217,1.0)',
+            }
+                    break;
+                case 'Comitê de Bacia do Rio Paranoá':
+                    return {
+                pane: 'pane_job70',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0.5,
+                fillColor: 'rgba(222,85,54,1.0)',
+            }
+                    break;
+                case 'Comitê de Bacia dos Afluentes do Rio Preto':
+                    return {
+                pane: 'pane_job70',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0.5,
+                fillColor: 'rgba(87,240,17,1.0)',
+            }
+                    break;
+                case '':
+                    return {
+                pane: 'pane_job70',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 0.5,
+                fillColor: 'rgba(208,139,240,1.0)',
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_job70');
+        map.getPane('pane_job70').style.zIndex = 600;
+        map.getPane('pane_job70').style['mix-blend-mode'] = 'normal';
+    var layer_job70 = new L.geoJson(json_job70, {
+        pane: 'pane_job70',
+        onEachFeature: pop_job70,
+        style: style_job70
+    });
+        bounds_group.addLayer(layer_job70);
+        feature_group.addLayer(layer_job70);
+        raster_group.addTo(map);
+        feature_group.addTo(map);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: feature_group,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'reg_hidrog'}));
+        </script>
+    </body>
+</html>

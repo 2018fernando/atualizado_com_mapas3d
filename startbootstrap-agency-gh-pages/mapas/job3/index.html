@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="http://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+        <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css" />
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="http://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+        <script src="js/leaflet-heat.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/OSMBuildings-Leaflet.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="data/2brasil0.js"></script>
+        <script src="data/1estados1.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:4
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        var feature_group = new L.featureGroup([]);
+        var bounds_group = new L.featureGroup([]);
+        var raster_group = new L.LayerGroup([]);
+        var basemap0 = L.tileLayer('http://stamen-tiles-a.a.ssl.fastly.net/terrain-background/{z}/{x}/{y}.png', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 28
+        });
+        basemap0.addTo(map);
+        function setBounds() {
+            if (bounds_group.getLayers().length) {
+                map.fitBounds(bounds_group.getBounds());
+            }
+            map.setMaxBounds(map.getBounds());
+        }
+        function geoJson2heat(geojson, weight) {
+          return geojson.features.map(function(feature) {
+            return [
+              feature.geometry.coordinates[1],
+              feature.geometry.coordinates[0],
+              feature.properties[weight]
+            ];
+          });
+        }
+        function pop_2brasil0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_2brasil0(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2"><strong>Legislação:</strong><br />' + (feature.properties['Legislação:'] !== null ? Autolinker.link(String(feature.properties['Legislação:'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Órgão Gestor:</strong><br />' + (feature.properties['Órgão Gestor:'] !== null ? Autolinker.link(String(feature.properties['Órgão Gestor:'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Abrangência:</strong><br />' + (feature.properties['Abrangência:'] !== null ? Autolinker.link(String(feature.properties['Abrangência:'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_2brasil0() {
+            return {
+                pane: 'pane_2brasil0',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.498039215686)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(152,213,182,0.498039215686)',
+            }
+        }
+        map.createPane('pane_2brasil0');
+        map.getPane('pane_2brasil0').style.zIndex = 600;
+        map.getPane('pane_2brasil0').style['mix-blend-mode'] = 'normal';
+    var layer_2brasil0 = new L.geoJson(json_2brasil0, {
+        pane: 'pane_2brasil0',
+        onEachFeature: pop_2brasil0,
+        style: style_2brasil0
+    });
+        bounds_group.addLayer(layer_2brasil0);
+        feature_group.addLayer(layer_2brasil0);
+        function pop_1estados1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    layer.setStyle(style_1estados1(feature));
+
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NM_ESTADO'] !== null ? Autolinker.link(String(feature.properties['NM_ESTADO'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Legislação:</strong><br />' + (feature.properties['Legislação:'] !== null ? Autolinker.link(String(feature.properties['Legislação:'])) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2"><strong>Órgão Gestor:</strong><br />' + (feature.properties['Órgão Gestor:'] !== null ? Autolinker.link(String(feature.properties['Órgão Gestor:'])) : '') + '</td>\
+                    </tr>\
+<tr>\
+                        <td colspan="2"><strong>Metodologia:</strong><br />' + (feature.properties['Metodologia:'] !== null ? Autolinker.link(String(feature.properties['Metodologia:'])) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent);
+        }
+
+        function style_1estados1() {
+            return {
+                pane: 'pane_1estados1',
+                opacity: 1,
+                color: 'rgba(0,0,0,0.290196078431)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fillOpacity: 1,
+                fillColor: 'rgba(98,246,82,0.290196078431)',
+            }
+        }
+        map.createPane('pane_1estados1');
+        map.getPane('pane_1estados1').style.zIndex = 601;
+        map.getPane('pane_1estados1').style['mix-blend-mode'] = 'normal';
+    var layer_1estados1 = new L.geoJson(json_1estados1, {
+        pane: 'pane_1estados1',
+        onEachFeature: pop_1estados1,
+        style: style_1estados1
+    });
+        bounds_group.addLayer(layer_1estados1);
+        feature_group.addLayer(layer_1estados1);
+        raster_group.addTo(map);
+        feature_group.addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>
